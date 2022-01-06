@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using System.Web.DynamicData;
-using Microsoft.Build.Logging;
+//using System.Threading.Tasks;
+//using System.Web.DynamicData;
+//using Microsoft.Build.Logging;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI.Events;
@@ -18,12 +18,16 @@ namespace QualitySmash
     {
         private string hoverTextColor;
         private string hoverTextQuality;
+        private bool drawHoverTextC;
+        private bool drawHoverTextQ;
         private readonly Texture2D cursorColor;
         private readonly Texture2D cursorQuality;
         private readonly ModEntry modEntry;
         private readonly ModConfig config;
 
         private IList<Item> actualItems;
+        private int itemSlotNumber;
+        private ItemGrabMenu chestMenu;// != null, if the item was not in the backpack inventory
 
         public SingleSmashHandler(ModEntry modEntry, ModConfig config, Texture2D cursorColor, Texture2D cursorQuality)
         {
@@ -31,9 +35,10 @@ namespace QualitySmash
             this.config = config;
             this.cursorColor = cursorColor;
             this.cursorQuality = cursorQuality;
-
-            this.hoverTextColor = "";
-            this.hoverTextQuality = "";
+            this.drawHoverTextC = false;
+            this.drawHoverTextQ = false;
+            this.hoverTextColor = modEntry.helper.Translation.Get("hoverTextColor");
+            this.hoverTextQuality = modEntry.helper.Translation.Get("hoverTextQuality");
         }
 
         internal void HandleClick(ButtonPressedEventArgs e)
@@ -70,7 +75,7 @@ namespace QualitySmash
 
         private Item GetActualItem(ClickableComponent clickableItem)
         {
-            var itemSlotNumber = Convert.ToInt32(clickableItem.name);
+            itemSlotNumber = Convert.ToInt32(clickableItem.name);
 
             if (actualItems == null)
                 return null;
@@ -83,6 +88,7 @@ namespace QualitySmash
         private ClickableComponent CheckInventoriesForCursorHoverItem(IClickableMenu menu, Vector2 cursorPos)
         {
             ClickableComponent itemToSmash;
+            chestMenu = null;
 
             if (menu is ItemGrabMenu grabMenu)
             {
@@ -96,6 +102,7 @@ namespace QualitySmash
                 itemToSmash = ScanForHoveredItem(grabMenu.ItemsToGrabMenu.inventory, cursorPos);
                 if (itemToSmash != null)
                 {
+                    chestMenu = grabMenu;
                     this.actualItems = grabMenu.ItemsToGrabMenu.actualInventory;
                     return itemToSmash;
                 }
@@ -116,7 +123,7 @@ namespace QualitySmash
             return null;
         }
 
-        private ClickableComponent ScanForHoveredItem(List<ClickableComponent> clickableItems, Vector2 cursorPos)
+        private static ClickableComponent ScanForHoveredItem(List<ClickableComponent> clickableItems, Vector2 cursorPos)
         {
             foreach (var clickableItem in clickableItems)
             {
@@ -145,25 +152,77 @@ namespace QualitySmash
                         item.ParentSheetIndex = 174;
                 }
 
-                if (item.category == -80 && item is ColoredObject c)
+                if (item.Category == -80 && item is ColoredObject c)
                     c.color.Value = default;
+
             }
 
             if (smashType == ModEntry.SmashType.Quality)
             {
-                if (item is StardewValley.Object o && o.Quality != 0)
+                if ((item is StardewValley.Object o) && (o.Quality != 0))
+                {
                     o.Quality /= 2;
+                    if (config.EnableSingleSmashToBaseQuality)
+                        o.Quality = 0;
+                }
+            }
+
+            //now look for another stack of the same item (quality+color) and stack this to that
+
+            int slot = itemSlotNumber;
+            int idx = item.ParentSheetIndex;
+            for (int j = 0; j < actualItems.Count; j++)
+            {
+                if (
+                    (j != slot) &&
+                    (actualItems[j] != null) &&
+                    (actualItems[j].ParentSheetIndex == idx) &&
+                    actualItems[j].canStackWith(item)
+                   )
+                {
+                    // stack onto the item with the lowest index for chests
+                    // stack onto the clicked item for backpack/inventory
+                    if (chestMenu != null)
+                    {
+                        if (j < slot)
+                        {
+                            int temp = j;
+                            j = slot;
+                            slot = temp;
+                        }
+                    }
+
+                    if (actualItems[slot].getRemainingStackSpace() > 0)
+                    {
+                        int remain = actualItems[slot].addToStack(actualItems[j]);
+                        if (chestMenu != null)
+                            chestMenu.ItemsToGrabMenu.ShakeItem(actualItems[slot]);
+
+                        if (remain == 0)
+                        {
+                            if (chestMenu == null)
+                                actualItems[j] = default; // backpack, leave a hole
+                            else
+                                actualItems.RemoveAt(j);
+                        }
+                        else
+                        {
+                            actualItems[j].Stack = remain;
+                        }
+                        return;
+                    }
+                }
             }
         }
 
-        private bool IsSmashable(Item item, ModEntry.SmashType smashType)
+        private static bool IsSmashable(Item item, ModEntry.SmashType smashType)
         {
             if (item == null)
                 return false;
 
             if (smashType == ModEntry.SmashType.Color)
             {
-                if (item.category == -80 && item is ColoredObject c)
+                if (item.Category == -80 && item is ColoredObject)
                     return true;
                 if (item.ParentSheetIndex == 180 || item.ParentSheetIndex == 182)
                     return true;
@@ -178,15 +237,15 @@ namespace QualitySmash
         }
 
         // Should be reworked to hover over any item in any inventory
-        internal bool TryHover(float x, float y)
+        internal bool TryHover(IClickableMenu menu, float x, float y)
         {
-            var menu = modEntry.GetValidKeybindSmashMenu();
-
             if (menu == null || !config.EnableSingleItemSmashKeybinds)
                 return false;
 
-            this.hoverTextColor = "";
-            this.hoverTextQuality = "";
+            //this.hoverTextColor = "";
+            //this.hoverTextQuality = "";
+            this.drawHoverTextC = false;
+            this.drawHoverTextQ = false;
 
             var cursorPos = new Vector2(x, y);
 
@@ -198,15 +257,17 @@ namespace QualitySmash
                 {
                     if (item.containsPoint((int) x, (int) y) && IsSmashable(GetActualItem(item), ModEntry.SmashType.Color))
                     {
-                         this.hoverTextColor = modEntry.helper.Translation.Get("hoverTextColor");
-                         return true;
+                        //this.hoverTextColor = modEntry.helper.Translation.Get("hoverTextColor");
+                        this.drawHoverTextC = true;
+                        return true;
                     }
                 }
                 else if (modEntry.helper.Input.IsDown(config.QualitySmashKeybind))
                 {
                     if (item.containsPoint((int) x, (int) y) && IsSmashable(GetActualItem(item), ModEntry.SmashType.Quality))
                     {
-                        this.hoverTextQuality = modEntry.helper.Translation.Get("hoverTextQuality");
+                        //this.hoverTextQuality = modEntry.helper.Translation.Get("hoverTextQuality");
+                        this.drawHoverTextQ = true;
                         return true;
                     }
                 }
@@ -214,38 +275,45 @@ namespace QualitySmash
             return false;
         }
 
-        public void DrawHoverText()
+        public void DrawHoverText(SpriteBatch b)
         {
-            Texture2D cursor = null;
-            var yOffset = 0;
-            var xOffset = 0;
+            Texture2D cursor;
+            int yOffset;
+            int xOffset;
 
-            if (this.hoverTextColor != "")
+            if (this.drawHoverTextC)
             {
-                IClickableMenu.drawHoverText(Game1.spriteBatch, hoverTextColor, Game1.smallFont, 57, -87);
+                IClickableMenu.drawHoverText(b, hoverTextColor, Game1.smallFont, 57, -87);
                 cursor = this.cursorColor;
                 yOffset = -50;
                 xOffset = 32;
             }
 
-            else if (this.hoverTextQuality != "")
+            else if (this.drawHoverTextQ)
             {
-                IClickableMenu.drawHoverText(Game1.spriteBatch, hoverTextQuality, Game1.smallFont, 57, -87);
+                IClickableMenu.drawHoverText(b, hoverTextQuality, Game1.smallFont, 57, -87);
                 cursor = this.cursorQuality;
                 yOffset = -50;
                 xOffset = 32;
             }
             else
             {
-                cursor = Game1.mouseCursors;
-                yOffset = 0;
-                xOffset = 0;
+                return;
+                //cursor = Game1.mouseCursors;
+                //yOffset = 0;
+                //xOffset = 0;
             }
 
-            // Draws cursor over the GUI element
-            Game1.spriteBatch.Draw(cursor, new Vector2(Game1.getOldMouseX() + xOffset, Game1.getOldMouseY() + yOffset),
-                Game1.getSourceRectForStandardTileSheet(Game1.mouseCursors, 0, 16, 16), Color.White, 0f, Vector2.Zero,
-                4f + Game1.dialogueButtonScale / 150f, SpriteEffects.None, 0);
+            // draw our button icon beside the hover text.
+            b.Draw(cursor,
+                   new Vector2(Game1.getOldMouseX() + xOffset, Game1.getOldMouseY() + yOffset),
+                   Game1.getSourceRectForStandardTileSheet(Game1.mouseCursors, 0, 16, 16),
+                   Color.White,
+                   0f,
+                   Vector2.Zero,
+                   4f + Game1.dialogueButtonScale / 150f,
+                   SpriteEffects.None,
+                   0);
         }
     }
 }

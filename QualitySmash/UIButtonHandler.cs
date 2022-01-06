@@ -41,9 +41,7 @@ namespace QualitySmash
             if (qsButtons.Any(button => button.smashType == smashType))
                 return;
 
-            QSButton newButton = new QSButton(smashType, texture, clickableArea);
-
-            newButton.UpdateHoverText("");
+            QSButton newButton = new QSButton(smashType, texture, modEntry.helper.Translation.Get(ModEntry.TranslationMapping[smashType]), clickableArea);
 
             qsButtons.Add(newButton);
 
@@ -65,7 +63,11 @@ namespace QualitySmash
         public void UpdateBounds(IClickableMenu menu)
         {
             var screenX = menu.xPositionOnScreen + menu.width + GapSize + Length;
-            var screenY = menu.yPositionOnScreen + menu.height / 3 - (Length * PositionFromBottom) - (GapSize * (PositionFromBottom - 1));
+            int screenY;
+            if (menu is ItemGrabMenu)
+                screenY = menu.yPositionOnScreen + menu.height / 3 - (Length * PositionFromBottom) - (GapSize * (PositionFromBottom - 1));
+            else
+                screenY = menu.yPositionOnScreen + menu.height / 3 - (GapSize * (PositionFromBottom - 1));
 
             for (int i = 0; i < qsButtons.Count; i++)
                 qsButtons[i].SetBounds(screenX, screenY + (i * (GapSize + Length)), Length);
@@ -75,29 +77,35 @@ namespace QualitySmash
         {
             foreach (QSButton button in qsButtons)
             {
-                if (button.ContainsPoint((int) x, (int) y))
-                {
-                    button.UpdateHoverText(
-                        modEntry.helper.Translation.Get(ModEntry.TranslationMapping[button.smashType]));
-                }
-                else
-                    button.UpdateHoverText("");
-
                 button.TryHover((int)x, (int)y);
             }
         }
 
-        public void DrawButtons()
+        public void DrawButtons(SpriteBatch b)
         {
+            // draw the hover text after all buttons. lower button can obscure upper button hover text.
+            // drawing hover after buttons means we do not care about button draw order.
+            QSButton hover = null;
             foreach (QSButton button in qsButtons)
             {
-                button.DrawButton(Game1.spriteBatch);
+                if (button.DrawButton(b))
+                    hover = button;
+
             }
+            if (hover != null)
+                hover.DrawHoverText(b);
 
             // Redraw cursor so it doesn't hide under QS buttons
-            Game1.spriteBatch.Draw(Game1.mouseCursors, new Vector2(Game1.getOldMouseX(), Game1.getOldMouseY()), 
-                Game1.getSourceRectForStandardTileSheet(Game1.mouseCursors, 0, 16, 16), Color.White, 0f, Vector2.Zero,
-                4f + Game1.dialogueButtonScale / 150f, SpriteEffects.None, 0);
+            // only necessary if we draw buttons above the menu and cursor level.
+            b.Draw(Game1.mouseCursors,
+                   new Vector2(Game1.getOldMouseX(), Game1.getOldMouseY()), 
+                   Game1.getSourceRectForStandardTileSheet(Game1.mouseCursors, 0, 16, 16),
+                   Color.White,
+                   0f,
+                   Vector2.Zero,
+                   4f + Game1.dialogueButtonScale / 150f,
+                   SpriteEffects.None,
+                   0);
         }
 
         public ModEntry.SmashType GetButtonClicked(int x, int y)

@@ -25,6 +25,8 @@ namespace QualitySmash
 
         public SButton QualitySmashKeybind { get; set; }
 
+        public bool EnableSingleSmashToBaseQuality { get; set; }
+
         public string ItemIDReference { get; set; }
         
         public List<string> IgnoreIridiumDescription { get; set; }
@@ -66,6 +68,8 @@ namespace QualitySmash
             this.ColorSmashKeybind = SButton.C;
 
             this.QualitySmashKeybind = SButton.Q;
+
+            this.EnableSingleSmashToBaseQuality = true;
 
             this.ItemIDReference = "Item ID reference: https://stardewids.com";
 

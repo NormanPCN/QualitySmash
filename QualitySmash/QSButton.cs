@@ -14,35 +14,46 @@ namespace QualitySmash
     {
         public ModEntry.SmashType smashType { get; private set; }
 
-        private Texture2D texture;
-
         private ClickableTextureComponent clickable;
+        private bool boundsSet;
+        private readonly String hoverText;
+        private bool drawHoverText;
+        //private Texture2D texture;
 
-        private Rectangle bounds; // hmmmm
-
-        public QSButton(ModEntry.SmashType smashType, Texture2D texture, Rectangle buttonClickableArea)
+        public QSButton(ModEntry.SmashType smashType, Texture2D texture, String hoverText, Rectangle buttonClickableArea)
         {
             this.smashType = smashType;
-
-            this.texture = texture;
+            this.boundsSet = false;
+            this.hoverText = hoverText;
+            this.drawHoverText = false;
+            //this.texture = texture;
 
             clickable = new ClickableTextureComponent(Rectangle.Empty, texture, buttonClickableArea, 4f);
         }
 
-
-
         public void SetBounds(int screenX, int screenY, int size)
         {
+            boundsSet = true;
             clickable.bounds = new Rectangle(screenX, screenY, size, size);
         }
 
-        public void DrawButton(SpriteBatch b)
+        public bool DrawButton(SpriteBatch b)
         {
-            if (this.bounds == null)
+            if (boundsSet)
+            {
+                clickable.draw(b, Color.White, 0f, 0);
+                return this.drawHoverText;
+                //if (drawHoverText)
+                //    IClickableMenu.drawHoverText(b, this.hoverText, Game1.smallFont);
+            }
+            else
                 throw new Exception("QSButton: SetBounds not called. Cannot draw button");
-            clickable.draw(b, Color.White, 0f, 0);
-            if (clickable.hoverText != "")
-                IClickableMenu.drawHoverText(b, clickable.hoverText, Game1.smallFont);
+        }
+
+        public void DrawHoverText(SpriteBatch b)
+        {
+            if (this.drawHoverText)
+                IClickableMenu.drawHoverText(b, this.hoverText, Game1.smallFont);
         }
 
         //Ensure passing scaled pixels
@@ -51,19 +62,21 @@ namespace QualitySmash
             return clickable.containsPoint(x, y);
         }
 
-        public void UpdateHoverText(string hoverText)
-        {
-            clickable.hoverText = hoverText;
-        }
+        //public void EnableHoverText(bool enable)
+        //{
+        //    DrawHoverText = enable;
+        //}
 
         /// <summary>
         /// Scale the button if hovered
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
-        public void TryHover(int x, int y)
+        public bool TryHover(int x, int y)
         {
+            drawHoverText = this.clickable.containsPoint((int)x, (int)y);
             clickable.tryHover(x, y, 0.4f);
+            return drawHoverText;
         }
         
     }
