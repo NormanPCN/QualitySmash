@@ -70,7 +70,7 @@ namespace QualitySmash
             // to allow button smash on backpack then test and setup that data here
             IList<Item> actualItems;
             ItemGrabMenu grabMenu = null;
-            IClickableMenu menu = modEntry.GetValidButtonSmashMenu();
+            IClickableMenu menu = ModEntry.GetValidButtonSmashMenu();
             if (menu is ItemGrabMenu)
             {
                 grabMenu = menu as ItemGrabMenu;

@@ -9,6 +9,9 @@ using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Menus;
 using StardewValley.Tools;
+#if UseHarmony
+using HarmonyLib;
+#endif
 
 namespace QualitySmash
 {
@@ -31,10 +34,10 @@ namespace QualitySmash
 
         private string assetsPath;
 
-        private ButtonSmashHandler buttonSmashHandler;
-        private SingleSmashHandler singleSmashHandler;
+        internal ButtonSmashHandler buttonSmashHandler;
+        internal SingleSmashHandler singleSmashHandler;
         private UndoHandler undoHandler;
-        private ModConfig Config;
+        internal ModConfig Config;
 
         // For GenericModConfigMenu
         private Dictionary<int, string> itemDictionary;
@@ -42,6 +45,7 @@ namespace QualitySmash
         private Dictionary<int, string> categoryDictionary;
 
         internal IModHelper helper;
+        public static ModEntry Instance { get; private set; }
         private bool EventsHooked;
 
         public override void Entry(IModHelper helper)
@@ -50,6 +54,7 @@ namespace QualitySmash
             
             this.Config = helper.ReadConfig<ModConfig>();
             this.helper = helper;
+            Instance = this;
 
             var buttonColor = helper.Content.Load<Texture2D>("assets/buttonColor.png");
             var buttonQuality = helper.Content.Load<Texture2D>("assets/buttonQuality.png");
@@ -73,13 +78,19 @@ namespace QualitySmash
             helper.Events.GameLoop.GameLaunched += OnGameLaunched;
             helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
             helper.Events.GameLoop.ReturnedToTitle += OnReturnedToTitle;
+
+#if UseHarmony
+            var harmony = new Harmony(this.ModManifest.UniqueID);
+
+            harmony.PatchAll();
+#endif
         }
 
         /// <summary>
         /// Gets the ItemGrabMenu if it's from a fridge or chest
         /// </summary>
         /// <returns>The ItemGrabMenu</returns>
-        internal IClickableMenu GetValidButtonSmashMenu()
+        internal static IClickableMenu GetValidButtonSmashMenu()
         {
             IClickableMenu menu = Game1.activeClickableMenu;
             if (menu != null)
@@ -111,7 +122,7 @@ namespace QualitySmash
             return null;
         }
 
-        internal IClickableMenu GetValidKeybindSmashMenu()
+        internal static IClickableMenu GetValidKeybindSmashMenu()
         {
             IClickableMenu menu = Game1.activeClickableMenu;
             if (
@@ -423,14 +434,11 @@ namespace QualitySmash
             if (hook && !EventsHooked)
             {
                 EventsHooked = true;
-                // RenderedActiveMenu has our buttons draw over other buttons hover text.
+                // RenderedActiveMenu has our buttons draw over other menu item hover text.
                 // RenderingActiveMenu stops this but the buttons are dimmed. they still work.
                 // RenderedWorld looks just like RenderingActiveMenu
                 // ??? how to draw at the same "level" as the game without patching via Harmony.
                 helper.Events.Display.RenderedActiveMenu += OnRenderedActiveMenu;
-#if RenderBelow
-                helper.Events.Display.RenderingActiveMenu += OnRenderingActiveMenu;
-#endif
                 helper.Events.Input.ButtonPressed += OnButtonPressed;
                 helper.Events.Input.ButtonReleased += OnButtonReleased;
                 helper.Events.Input.CursorMoved += OnCursorMoved;
@@ -440,9 +448,6 @@ namespace QualitySmash
             {
                 EventsHooked = false;
                 helper.Events.Display.RenderedActiveMenu -= OnRenderedActiveMenu;
-#if RenderBelow
-                helper.Events.Display.RenderingActiveMenu -= OnRenderingActiveMenu;
-#endif
                 helper.Events.Input.ButtonPressed -= OnButtonPressed;
                 helper.Events.Input.ButtonReleased -= OnButtonReleased;
                 helper.Events.Input.CursorMoved -= OnCursorMoved;
@@ -510,18 +515,18 @@ namespace QualitySmash
         }
 
         //Attempt to smooth out button animations
-        private void OnUpdateTicking(object sender, UpdateTickingEventArgs e)
-        {
-            //if (!Context.IsWorldReady) return;
+        //private void OnUpdateTicking(object sender, UpdateTickingEventArgs e)
+        //{
+        //    //if (!Context.IsWorldReady) return;
 
-            var menu = GetValidButtonSmashMenu();
-            if (menu == null || !Config.EnableUISmashButtons)
-                return;
+        //    var menu = GetValidButtonSmashMenu();
+        //    if (menu == null || !Config.EnableUISmashButtons)
+        //        return;
 
-            var scaledMousePos = Game1.getMousePosition(true);
+        //    var scaledMousePos = Game1.getMousePosition(true);
 
-            buttonSmashHandler.TryHover(menu, scaledMousePos.X, scaledMousePos.Y);
-        }
+        //    buttonSmashHandler.TryHover(menu, scaledMousePos.X, scaledMousePos.Y);
+        //}
 
         private void OnCursorMoved(object sender, CursorMovedEventArgs e)
         {
@@ -529,18 +534,9 @@ namespace QualitySmash
                 UpdateHoverText();
         }
 
-#if RenderBelow
-        private void OnRenderingActiveMenu(object sender, RenderingActiveMenuEventArgs e)
-        {
-            IClickableMenu menu = GetValidButtonSmashMenu();
-            if ((menu != null) && Config.EnableUISmashButtons)
-                buttonSmashHandler.DrawButtons(menu, e.SpriteBatch);
-        }
-#endif
-
         private void OnRenderedActiveMenu(object sender, RenderedActiveMenuEventArgs e)
         {
-#if !RenderBelow
+#if !UseHarmony
             IClickableMenu menu = GetValidButtonSmashMenu();
             if ((menu != null) && Config.EnableUISmashButtons)
                 buttonSmashHandler.DrawButtons(menu, e.SpriteBatch);

@@ -43,7 +43,7 @@ namespace QualitySmash
 
         internal void HandleClick(ButtonPressedEventArgs e)
         {
-            var menu = modEntry.GetValidKeybindSmashMenu();
+            var menu = ModEntry.GetValidKeybindSmashMenu();
 
             if (menu == null || !config.EnableSingleItemSmashKeybinds)
                 return;

@@ -2,17 +2,18 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
+    <EnableHarmony>true</EnableHarmony>
     <AssemblyName>QualitySmash</AssemblyName>
     <RootNamespace>QualitySmash</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
-    <DefineConstants>TRACE; NrbButtonSmash; RenderBelow</DefineConstants>
+    <DefineConstants>TRACE; NrbButtonSmash; UseHarmony</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DefineConstants>TRACE; NrbButtonSmash</DefineConstants>
+    <DefineConstants>TRACE; NrbButtonSmash; UseHarmony</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
