@@ -41,7 +41,7 @@ namespace QualitySmash
         {
             if (boundsSet)
             {
-                clickable.draw(b, Color.White, 0f, 0);
+                clickable.draw(b, Color.White, layerDepth: 0f, frameOffset: 0);
                 return this.drawHoverText;
                 //if (drawHoverText)
                 //    IClickableMenu.drawHoverText(b, this.hoverText, Game1.smallFont);

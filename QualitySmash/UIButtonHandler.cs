@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
 using StardewValley.Menus;
+using StardewModdingAPI;
 
 namespace QualitySmash
 {
@@ -95,10 +96,11 @@ namespace QualitySmash
             if (hover != null)
                 hover.DrawHoverText(b);
 
+#if !UseHarmony
             // Redraw cursor so it doesn't hide under QS buttons
             // only necessary if we draw buttons above the menu and cursor level.
             b.Draw(Game1.mouseCursors,
-                   new Vector2(Game1.getOldMouseX(), Game1.getOldMouseY()), 
+                   new Vector2(Game1.getOldMouseX(), Game1.getOldMouseY()),
                    Game1.getSourceRectForStandardTileSheet(Game1.mouseCursors, 0, 16, 16),
                    Color.White,
                    0f,
@@ -106,6 +108,7 @@ namespace QualitySmash
                    4f + Game1.dialogueButtonScale / 150f,
                    SpriteEffects.None,
                    0);
+#endif
         }
 
         public ModEntry.SmashType GetButtonClicked(int x, int y)

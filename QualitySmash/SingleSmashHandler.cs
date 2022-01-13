@@ -8,6 +8,7 @@ using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI.Events;
+using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Menus;
 using StardewValley.Objects;
@@ -127,9 +128,8 @@ namespace QualitySmash
         {
             foreach (var clickableItem in clickableItems)
             {
-                if (!clickableItem.containsPoint((int)cursorPos.X, (int)cursorPos.Y))
-                    continue;
-                return clickableItem;
+                if (clickableItem.containsPoint((int)cursorPos.X, (int)cursorPos.Y))
+                    return clickableItem;
             }
             return null;
         }
@@ -226,6 +226,7 @@ namespace QualitySmash
                     return true;
                 if (item.ParentSheetIndex == 180 || item.ParentSheetIndex == 182)
                     return true;
+                //modEntry.Monitor.Log($"Not smashable. category={item.Category}, isColored={item is ColoredObject}", LogLevel.Debug);
             }
 
             if (smashType == ModEntry.SmashType.Quality)
