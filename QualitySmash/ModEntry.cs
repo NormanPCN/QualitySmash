@@ -279,7 +279,7 @@ namespace QualitySmash
             api.AddPageLink(this.ModManifest, "Exceptions: Ignore Iridium by Item", () => "Exceptions: Ignore Iridium", () => "Exceptions to the \"Ignore Iridium\" smash filter");
             api.AddPageLink(this.ModManifest, "Color Smash: Ignore Items", () => "Color Smash: Ignore Items", () => "Items to ignore when using the Color Smash button");
             api.AddPageLink(this.ModManifest, "Both Smash: Ignore by Category", () => "Both Smash: Ignore by Category", () => "Categories to ignore when using the Color Smash or Quality Smash buttons");
-            api.AddPageLink(this.ModManifest, "Both Smash: Ignore by Items", () => "Both Smash: Ignore Items", () => "Items to ignore when using the Color Smash or Quality Smash buttons");
+            api.AddPageLink(this.ModManifest, "Both Smash: Ignore by Item", () => "Both Smash: Ignore Items", () => "Items to ignore when using the Color Smash or Quality Smash buttons");
             api.AddPageLink(this.ModManifest, "Single Smash", () => "Configure single item color and quality smashing");
 
             api.AddPage(this.ModManifest, "Single Smash");
@@ -348,7 +348,7 @@ namespace QualitySmash
                 setValue: value => this.Config.IgnoreSilver = value
             );
 
-            api.AddPage(this.ModManifest, "Exceptions: Ignore Iridium");
+            api.AddPage(this.ModManifest, "Exceptions: Ignore Iridium by Item");
             api.AddPageLink(this.ModManifest, "", () => "Back to main page");
             api.AddParagraph(this.ModManifest, () => "Iridium quality items selected on this page WILL BE SMASHED by Smash Quality even if \"Ignore Iridium Quality Items\" is enabled");
 
@@ -393,7 +393,7 @@ namespace QualitySmash
                 );
             }
 
-            api.AddPage(this.ModManifest, "Both Smash: Ignore Items");
+            api.AddPage(this.ModManifest, "Both Smash: Ignore by Item");
             api.AddPageLink(this.ModManifest, "", () => "Back to main page");
             api.AddParagraph(this.ModManifest, () => "Items selected on this page will be ignored by Smash Colors and Smash Quality");
 
