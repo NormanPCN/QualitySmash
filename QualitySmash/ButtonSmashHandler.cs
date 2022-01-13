@@ -43,14 +43,73 @@ namespace QualitySmash
 
         public void DrawButtons(IClickableMenu menu, SpriteBatch b)
         {
-            //var menu = modEntry.GetValidButtonSmashMenu();
-            //if (menu == null)
-            //    return;
-
             buttonHandler.UpdateBounds(menu);
-
             buttonHandler.DrawButtons(b);
-           
+
+#if !UseHarmony
+            // redraw any foreground hovertext our buttons may have drawn over
+
+            if (menu is ItemGrabMenu grabMenu)
+            {
+                if ((grabMenu.hoverText is not null) && (grabMenu.hoveredItem is null))
+                {
+                    if (grabMenu.hoverAmount > 0)
+                    {
+                        IClickableMenu.drawToolTip(b, grabMenu.hoverText, string.Empty, null, true, -1, 0, -1, -1, null, grabMenu.hoverAmount);
+                    }
+                    else
+                    {
+                        IClickableMenu.drawHoverText(b, grabMenu.hoverText, Game1.smallFont);
+                    }
+                }
+
+                var iMenu = grabMenu.ItemsToGrabMenu;
+                if ((iMenu?.hoverText is not null) && (grabMenu.hoveredItem is not null))
+                {
+                    IClickableMenu.drawToolTip(b,
+                                               grabMenu.hoveredItem.getDescription(),
+                                               grabMenu.hoveredItem.DisplayName,
+                                               grabMenu.hoveredItem,
+                                               grabMenu.heldItem is not null);
+                }
+                else if ((grabMenu.hoveredItem is not null) && (iMenu is not null))
+                {
+                    IClickableMenu.drawToolTip(b, iMenu.descriptionText, iMenu.descriptionTitle, grabMenu.hoveredItem, grabMenu.heldItem is not null);
+                }
+            }
+            else if ((menu is GameMenu gMenu) && (gMenu.GetCurrentPage() is InventoryPage iPage))
+            {
+                // these fields are private in InventoryPage. these same fields are public in ItemGrabMenu.
+                IReflectionHelper reflect = modEntry.helper.Reflection;
+                Item hoveredItem = reflect.GetField<Item>(iPage, "hoveredItem").GetValue();
+                string hoverText = reflect.GetField<string>(iPage, "hoverText").GetValue();
+                int hoverAmount = reflect.GetField<int>(iPage, "hoverAmount").GetValue();
+
+                if ((hoverText is not null) && (hoveredItem is null))
+                {
+                    if (hoverAmount > 0)
+                    {
+                        IClickableMenu.drawToolTip(b, hoverText, string.Empty, null, true, -1, 0, -1, -1, null, hoverAmount);
+                    }
+                    else
+                    {
+                        IClickableMenu.drawHoverText(b, hoverText, Game1.smallFont);
+                    }
+                }
+
+                var iMenu = iPage.inventory;
+                if ((iMenu?.hoverText is not null) && (hoveredItem is not null))
+                {
+                    IClickableMenu.drawToolTip(b, hoveredItem.getDescription(), hoveredItem.DisplayName, hoveredItem, heldItem: false);
+                }
+                else if ((hoveredItem is not null) && (iMenu is not null))
+                {
+                    IClickableMenu.drawToolTip(b, iMenu.descriptionText, iMenu.descriptionTitle, hoveredItem, heldItem: false);
+                }
+            }
+
+            menu.drawMouse(b);
+#endif
         }
 
         internal void TryHover(IClickableMenu menu, float x, float y)
@@ -69,16 +128,16 @@ namespace QualitySmash
 
             // to allow button smash on backpack then test and setup that data here
             IList<Item> actualItems;
-            ItemGrabMenu grabMenu = null;
+            ItemGrabMenu chestMenu = null;
             IClickableMenu menu = ModEntry.GetValidButtonSmashMenu();
             if (menu is ItemGrabMenu)
             {
-                grabMenu = menu as ItemGrabMenu;
-                actualItems = grabMenu.ItemsToGrabMenu.actualInventory;
+                chestMenu = menu as ItemGrabMenu;
+                actualItems = chestMenu.ItemsToGrabMenu.actualInventory;
             }
-            else if ((menu is GameMenu gameMenu) && (gameMenu.GetCurrentPage() is InventoryPage inventoryPage))
+            else if ((menu is GameMenu gameMenu) && (gameMenu.GetCurrentPage() is InventoryPage iPage))
             {
-                actualItems = inventoryPage.inventory.actualInventory;
+                actualItems = iPage.inventory.actualInventory;
             }
             else
                 return;
@@ -90,9 +149,9 @@ namespace QualitySmash
             Game1.playSound("clubhit");
 
 #if NrbButtonSmash
-            DoSmash(grabMenu, actualItems, buttonClicked);
+            DoSmash(chestMenu, actualItems, buttonClicked);
 #else
-            DoSmash(grabMenu, buttonClicked);
+            DoSmash(chestMenu, buttonClicked);
 #endif
         }
 
