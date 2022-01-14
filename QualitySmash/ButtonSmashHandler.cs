@@ -49,63 +49,45 @@ namespace QualitySmash
 #if !UseHarmony
             // redraw any foreground hovertext our buttons may have drawn over
 
+            Item hoveredItem = null;
+            string hoverText = null;
+            int hoverAmount = 0;
+            InventoryMenu iMenu = null;
+            bool heldItem = false;
+
             if (menu is ItemGrabMenu grabMenu)
             {
-                if ((grabMenu.hoverText is not null) && (grabMenu.hoveredItem is null))
-                {
-                    if (grabMenu.hoverAmount > 0)
-                    {
-                        IClickableMenu.drawToolTip(b, grabMenu.hoverText, string.Empty, null, true, -1, 0, -1, -1, null, grabMenu.hoverAmount);
-                    }
-                    else
-                    {
-                        IClickableMenu.drawHoverText(b, grabMenu.hoverText, Game1.smallFont);
-                    }
-                }
-
-                var iMenu = grabMenu.ItemsToGrabMenu;
-                if ((iMenu?.hoverText is not null) && (grabMenu.hoveredItem is not null))
-                {
-                    IClickableMenu.drawToolTip(b,
-                                               grabMenu.hoveredItem.getDescription(),
-                                               grabMenu.hoveredItem.DisplayName,
-                                               grabMenu.hoveredItem,
-                                               grabMenu.heldItem is not null);
-                }
-                else if ((grabMenu.hoveredItem is not null) && (iMenu is not null))
-                {
-                    IClickableMenu.drawToolTip(b, iMenu.descriptionText, iMenu.descriptionTitle, grabMenu.hoveredItem, grabMenu.heldItem is not null);
-                }
+                hoveredItem = grabMenu.hoveredItem;
+                hoverAmount = grabMenu.hoverAmount;
+                hoverText = grabMenu.hoverText;
+                iMenu = grabMenu.ItemsToGrabMenu;
+                heldItem = grabMenu.heldItem != null;
             }
             else if ((menu is GameMenu gMenu) && (gMenu.GetCurrentPage() is InventoryPage iPage))
             {
-                // these fields are private in InventoryPage. these same fields are public in ItemGrabMenu.
+                // these fields are private in InventoryPage. public in ItemGrabMenu.
                 IReflectionHelper reflect = modEntry.helper.Reflection;
-                Item hoveredItem = reflect.GetField<Item>(iPage, "hoveredItem").GetValue();
-                string hoverText = reflect.GetField<string>(iPage, "hoverText").GetValue();
-                int hoverAmount = reflect.GetField<int>(iPage, "hoverAmount").GetValue();
+                hoveredItem = reflect.GetField<Item>(iPage, "hoveredItem").GetValue();
+                hoverText = reflect.GetField<string>(iPage, "hoverText").GetValue();
+                hoverAmount = reflect.GetField<int>(iPage, "hoverAmount").GetValue();
+                iMenu = iPage.inventory;
+                heldItem = false;//???
+            }
 
-                if ((hoverText is not null) && (hoveredItem is null))
-                {
-                    if (hoverAmount > 0)
-                    {
-                        IClickableMenu.drawToolTip(b, hoverText, string.Empty, null, true, -1, 0, -1, -1, null, hoverAmount);
-                    }
-                    else
-                    {
-                        IClickableMenu.drawHoverText(b, hoverText, Game1.smallFont);
-                    }
-                }
+            if ((hoverText is not null) && (hoveredItem == null))
+            {
+                if (hoverAmount > 0)
+                    IClickableMenu.drawToolTip(b, hoverText, string.Empty, null, true, -1, 0, -1, -1, null, hoverAmount);
+                else
+                    IClickableMenu.drawHoverText(b, hoverText, Game1.smallFont);
+            }
 
-                var iMenu = iPage.inventory;
-                if ((iMenu?.hoverText is not null) && (hoveredItem is not null))
-                {
-                    IClickableMenu.drawToolTip(b, hoveredItem.getDescription(), hoveredItem.DisplayName, hoveredItem, heldItem: false);
-                }
-                else if ((hoveredItem is not null) && (iMenu is not null))
-                {
-                    IClickableMenu.drawToolTip(b, iMenu.descriptionText, iMenu.descriptionTitle, hoveredItem, heldItem: false);
-                }
+            if (iMenu != null)
+            {
+                if ((iMenu.hoverText is not null) && (hoveredItem != null))
+                    IClickableMenu.drawToolTip(b, hoveredItem.getDescription(), hoveredItem.DisplayName, hoveredItem, heldItem);
+                else if (hoveredItem != null)
+                    IClickableMenu.drawToolTip(b, iMenu.descriptionText, iMenu.descriptionTitle, hoveredItem, heldItem);
             }
 
             menu.drawMouse(b);
