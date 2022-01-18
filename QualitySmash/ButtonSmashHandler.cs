@@ -71,8 +71,12 @@ namespace QualitySmash
                 hoverText = reflect.GetField<string>(iPage, "hoverText").GetValue();
                 hoverAmount = reflect.GetField<int>(iPage, "hoverAmount").GetValue();
                 iMenu = iPage.inventory;
-                heldItem = false;//???
+                heldItem = Game1.player.CursorSlotItem != null;//looking at InventoryPage.checkHeldItem code
             }
+
+            // code logic for hover items redraw provided by furyx639. (expanded storage mod)
+            // which in turn is taken from ItemGrabMenu.draw (bottom of method)
+            // might have an issue on iPage but seems to be fine thus far. iPage has a slightly different hover draw.
 
             if ((hoverText is not null) && (hoveredItem == null))
             {
