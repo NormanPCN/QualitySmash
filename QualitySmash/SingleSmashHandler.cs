@@ -209,8 +209,9 @@ namespace QualitySmash
                         {
                             actualItems[j].Stack = remain;
                         }
-                        return;
                     }
+
+                    return;
                 }
             }
         }
