@@ -9,15 +9,15 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
-    <DefineConstants>TRACE; NrbButtonSmash</DefineConstants>
+    <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DefineConstants>TRACE; NrbButtonSmash</DefineConstants>
+    <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Patches.cs" Condition=" '$(EnableHarmony)' == 'true' "/>
+    <Compile Include="Patches.cs" Condition=" '$(EnableHarmony)' == 'true' " />
   </ItemGroup>
 
   <ItemGroup>

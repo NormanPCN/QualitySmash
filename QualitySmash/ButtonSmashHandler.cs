@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework;
+﻿//#define OriginalButtonSmash
+
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewValley;
@@ -134,7 +136,7 @@ namespace QualitySmash
 
             Game1.playSound("clubhit");
 
-#if NrbButtonSmash
+#if !OriginalButtonSmash
             DoSmash(chestMenu, actualItems, buttonClicked);
 #else
             DoSmash(chestMenu, buttonClicked);
@@ -163,7 +165,7 @@ namespace QualitySmash
             return false;
         }
 
-#if NrbButtonSmash
+#if !OriginalButtonSmash
         private void DoSmash(ItemGrabMenu chestMenu, IList<Item> actualItems, ModEntry.SmashType smashType)
         {
             // smash in place.
