@@ -97,7 +97,7 @@ namespace QualitySmash
                 heldItem = Game1.player.CursorSlotItem != null;//looking at InventoryPage.checkHeldItem code
             }
 
-            // code logic for hover items redraw provided by furyx639. (expanded storage mod)
+            // code logic for hover items redraw provided by furyx639.
             // which in turn is taken from ItemGrabMenu.draw (bottom of method)
             // might have an issue on iPage but seems to be fine thus far. iPage has a slightly different hover draw.
 

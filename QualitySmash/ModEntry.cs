@@ -265,7 +265,27 @@ namespace QualitySmash
                     else
                         this.buttonSmashHandler.AddButton(ModEntry.SmashType.Quality, helper.Content.Load<Texture2D>("assets/buttonQuality.png"), new Rectangle(0, 0, 16, 16));
                 });
-            
+
+            api.AddNumberOption(
+                mod: this.ModManifest,
+                name: () => "Chest Button Offset",
+                tooltip: () => "If Quality Smash buttons conflict with another Mod, you can offset the button location to compensate. This offsets the button on the chest menu.",
+                getValue: () => this.Config.SmashButtonXOffset_Chest,
+                setValue: (int value) => this.Config.SmashButtonXOffset_Chest = value,
+                min: 0,
+                max: 128
+                );
+
+            api.AddNumberOption(
+                mod: this.ModManifest,
+                name: () => "Inventory Button Offset",
+                tooltip: () => "If Quality Smash buttons conflict with another Mod, you can offset the button location to compensate. This offsets the button on the inventory menu.",
+                getValue: () => this.Config.SmashButtonXOffset_Inventory,
+                setValue: (int value) => this.Config.SmashButtonXOffset_Inventory = value,
+                min: 0,
+                max: 128
+                );
+
             api.AddBoolOption(
                 mod: this.ModManifest,
                 name: () => "Enable Egg Color Smash",

@@ -17,6 +17,10 @@ namespace QualitySmash
 
         public bool EnableUIQualitySmashButton { get; set; }
 
+        public int SmashButtonXOffset_Chest { get; set; }
+
+        public int SmashButtonXOffset_Inventory { get; set; }
+
         public bool EnableEggColorSmashing { get; set; }
 
         public bool EnableSingleItemSmashKeybinds { get; set; }
@@ -70,6 +74,8 @@ namespace QualitySmash
             this.QualitySmashKeybind = SButton.Q;
 
             this.EnableSingleSmashToBaseQuality = true;
+            this.SmashButtonXOffset_Chest = 0;
+            this.SmashButtonXOffset_Inventory = 0;
 
             this.ItemIDReference = "Item ID reference: https://stardewids.com";
 
