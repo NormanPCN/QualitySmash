@@ -17,6 +17,9 @@ namespace QualitySmash
         private readonly ModEntry modEntry;
         private readonly UiButtonHandler buttonHandler;
         private readonly ModConfig config;
+        IReflectedField<Item> Reflect_hoveredItem;
+        IReflectedField<string> Reflect_hoverText;
+        IReflectedField<int> Reflect_hoverAmount;
 
         /// <summary>
         /// Initializes stuff for the mod.
@@ -31,6 +34,25 @@ namespace QualitySmash
             this.config = config;
 
             this.buttonHandler = new UiButtonHandler(modEntry);
+
+            Reflect_hoveredItem = null;
+            Reflect_hoverText = null;
+            Reflect_hoverAmount = null;
+        }
+
+        public void NewMenuActive(IClickableMenu menu)
+        {
+            Reflect_hoveredItem = null;
+            Reflect_hoverText = null;
+            Reflect_hoverAmount = null;
+
+            if ((menu is GameMenu gMenu) && (gMenu.GetCurrentPage() is InventoryPage iPage))
+            {
+                IReflectionHelper reflect = modEntry.helper.Reflection;
+                Reflect_hoveredItem = reflect.GetField<Item>(iPage, "hoveredItem");
+                Reflect_hoverText = reflect.GetField<string>(iPage, "hoverText");
+                Reflect_hoverAmount = reflect.GetField<int>(iPage, "hoverAmount");
+            }
         }
 
         public void AddButton(ModEntry.SmashType smashType, Texture2D image, Rectangle clickableArea)
@@ -68,10 +90,9 @@ namespace QualitySmash
             else if ((menu is GameMenu gMenu) && (gMenu.GetCurrentPage() is InventoryPage iPage))
             {
                 // these fields are private in InventoryPage. public in ItemGrabMenu.
-                IReflectionHelper reflect = modEntry.helper.Reflection;
-                hoveredItem = reflect.GetField<Item>(iPage, "hoveredItem").GetValue();
-                hoverText = reflect.GetField<string>(iPage, "hoverText").GetValue();
-                hoverAmount = reflect.GetField<int>(iPage, "hoverAmount").GetValue();
+                hoveredItem = Reflect_hoveredItem.GetValue();
+                hoverText = Reflect_hoverText.GetValue();
+                hoverAmount = Reflect_hoverAmount.GetValue();
                 iMenu = iPage.inventory;
                 heldItem = Game1.player.CursorSlotItem != null;//looking at InventoryPage.checkHeldItem code
             }

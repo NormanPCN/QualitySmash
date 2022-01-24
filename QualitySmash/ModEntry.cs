@@ -552,11 +552,13 @@ namespace QualitySmash
             {
                 // keep code out the the game loop unless a menu is active
                 HookMenuEvents(IsValidSmashMenuAny(e.NewMenu));
+                buttonSmashHandler.NewMenuActive(e.NewMenu);
             }
             else
             {
                 //Monitor.Log("IsWorldReady=false in OnMenuChanged", LogLevel.Debug);
                 HookMenuEvents(false);
+                buttonSmashHandler.NewMenuActive(null);
             }
         }
     }
