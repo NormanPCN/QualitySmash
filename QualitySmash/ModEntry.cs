@@ -266,6 +266,7 @@ namespace QualitySmash
                         this.buttonSmashHandler.AddButton(ModEntry.SmashType.Quality, helper.Content.Load<Texture2D>("assets/buttonQuality.png"), new Rectangle(0, 0, 16, 16));
                 });
 
+#if ButtonOffsets
             api.AddNumberOption(
                 mod: this.ModManifest,
                 name: () => "Chest Button Offset",
@@ -285,6 +286,7 @@ namespace QualitySmash
                 min: 0,
                 max: 128
                 );
+#endif
 
             api.AddBoolOption(
                 mod: this.ModManifest,

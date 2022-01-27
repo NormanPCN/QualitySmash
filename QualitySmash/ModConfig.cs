@@ -74,8 +74,10 @@ namespace QualitySmash
             this.QualitySmashKeybind = SButton.Q;
 
             this.EnableSingleSmashToBaseQuality = true;
+#if ButtonOffsets
             this.SmashButtonXOffset_Chest = 0;
             this.SmashButtonXOffset_Inventory = 0;
+#endif
 
             this.ItemIDReference = "Item ID reference: https://stardewids.com";
 

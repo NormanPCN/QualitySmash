@@ -68,12 +68,16 @@ namespace QualitySmash
             if (menu is ItemGrabMenu)
             {
                 screenY = menu.yPositionOnScreen + menu.height / 3 - (Length * PositionFromBottom) - (GapSize * (PositionFromBottom - 1));
+#if ButtonOffsets
                 screenX += modEntry.Config.SmashButtonXOffset_Chest;
+#endif
             }
             else
             {
                 screenY = menu.yPositionOnScreen + menu.height / 3 - (GapSize * (PositionFromBottom - 1));
+#if ButtonOffsets
                 screenX += modEntry.Config.SmashButtonXOffset_Inventory;
+#endif
             }
 
             for (int i = 0; i < qsButtons.Count; i++)
