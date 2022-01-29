@@ -9,5 +9,8 @@
   "UpdateKeys": [
     "GitHub:jn84/QualitySmash",
     "Nexus:7907"
+  ],
+  "Dependencies": [
+    {"UniqueID": "spacechase0.GenericModConfigMenu", "IsRequired": false}
   ]
 }
