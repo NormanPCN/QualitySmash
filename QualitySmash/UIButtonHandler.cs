@@ -63,13 +63,27 @@ namespace QualitySmash
 
         public void UpdateBounds(IClickableMenu menu)
         {
-            // there is actually a different gap in between vanilla buttons (organize, fillstacks). don't see that in code.
-            // we'll keep the post CC gap.
             int screenX = menu.xPositionOnScreen + menu.width + GapSize + Length;
             int screenY;
 
+            // there is actually a different gap in between vanilla buttons (organize, fillstacks) with CC button active.
+            int gap = GapSize;
+
             if (menu is ItemGrabMenu grabMenu)
             {
+                // if >= 4 buttons the gap is smaller.
+                if (
+                    (grabMenu.fillStacksButton != null) &&
+                    (grabMenu.organizeButton != null) &&
+                    (grabMenu.colorPickerToggleButton != null) &&
+                    (
+                     (grabMenu.junimoNoteIcon != null) || (grabMenu.specialButton != null)
+                    )
+                   )
+                {
+                    gap /= 2;
+                }
+
                 screenY = menu.yPositionOnScreen + (menu.height / 3) - Length - Length - GapSize;// code from ItemGrabMenu, for fillStacksButton.
                 if (grabMenu.fillStacksButton != null)
                     screenY = grabMenu.fillStacksButton.bounds.Y;
@@ -81,14 +95,16 @@ namespace QualitySmash
             {
                 screenY = menu.yPositionOnScreen + (menu.height / 3) - Length + 8;// code from InventoryPage, for organizeButton.
                 if ((menu is GameMenu gameMenu) && (gameMenu.GetCurrentPage() is InventoryPage iPage) && (iPage.organizeButton != null))
+                {
                     screenY = iPage.organizeButton.bounds.Y;
+                }
 #if ButtonOffsets
                 screenX += modEntry.Config.SmashButtonXOffset_Inventory;
 #endif
             }
 
             for (int i = 0; i < qsButtons.Count; i++)
-                qsButtons[i].SetBounds(screenX, screenY + (i * (Length + GapSize)), Length);
+                qsButtons[i].SetBounds(screenX, screenY + (i * (Length + gap)), Length);
         }
 
         public void TryHover(float x, float y)
