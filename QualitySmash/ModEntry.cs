@@ -56,9 +56,9 @@ namespace QualitySmash
             this.helper = helper;
             Instance = this;
 
-            var buttonColor = helper.Content.Load<Texture2D>("assets/buttonColor.png");
-            var buttonQuality = helper.Content.Load<Texture2D>("assets/buttonQuality.png");
-            var buttonUndo = helper.Content.Load<Texture2D>("assets/buttonUndo.png");
+            var buttonColor = helper.ModContent.Load<Texture2D>("assets/buttonColor.png");
+            var buttonQuality = helper.ModContent.Load<Texture2D>("assets/buttonQuality.png");
+            var buttonUndo = helper.ModContent.Load<Texture2D>("assets/buttonUndo.png");
 
             PopulateIdReferences();
 
@@ -249,7 +249,7 @@ namespace QualitySmash
                     if (!value)
                         this.buttonSmashHandler.RemoveButton(ModEntry.SmashType.Color);
                     else
-                        this.buttonSmashHandler.AddButton(ModEntry.SmashType.Color, helper.Content.Load<Texture2D>("assets/buttonColor.png"), new Rectangle(0, 0, 16, 16));
+                        this.buttonSmashHandler.AddButton(ModEntry.SmashType.Color, helper.ModContent.Load<Texture2D>("assets/buttonColor.png"), new Rectangle(0, 0, 16, 16));
                 });
 
             api.AddBoolOption(
@@ -263,7 +263,7 @@ namespace QualitySmash
                     if (!value)
                         this.buttonSmashHandler.RemoveButton(ModEntry.SmashType.Quality);
                     else
-                        this.buttonSmashHandler.AddButton(ModEntry.SmashType.Quality, helper.Content.Load<Texture2D>("assets/buttonQuality.png"), new Rectangle(0, 0, 16, 16));
+                        this.buttonSmashHandler.AddButton(ModEntry.SmashType.Quality, helper.ModContent.Load<Texture2D>("assets/buttonQuality.png"), new Rectangle(0, 0, 16, 16));
                 });
 
 #if ButtonOffsets
