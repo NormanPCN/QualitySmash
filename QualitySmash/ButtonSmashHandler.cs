@@ -104,7 +104,7 @@ namespace QualitySmash
             if ((hoverText is not null) && (hoveredItem == null))
             {
                 if (hoverAmount > 0)
-                    IClickableMenu.drawToolTip(b, hoverText, string.Empty, null, true, -1, 0, -1, -1, null, hoverAmount);
+                    IClickableMenu.drawToolTip(b, hoverText, hoverTitle: string.Empty, hoveredItem: null, heldItem: true, moneyAmountToShowAtBottom: hoverAmount);
                 else
                     IClickableMenu.drawHoverText(b, hoverText, Game1.smallFont);
             }

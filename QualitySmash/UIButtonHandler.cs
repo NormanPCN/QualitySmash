@@ -86,7 +86,10 @@ namespace QualitySmash
 
                 screenY = menu.yPositionOnScreen + (menu.height / 3) - Length - Length - GapSize;// code from ItemGrabMenu, for fillStacksButton.
                 if (grabMenu.fillStacksButton != null)
+                {
                     screenY = grabMenu.fillStacksButton.bounds.Y;
+                    screenX = grabMenu.fillStacksButton.bounds.X + Length + GapSize;//need this with big chests. menu.width seems to not give what we need.
+                }
 #if ButtonOffsets
                 screenX += modEntry.Config.SmashButtonXOffset_Chest;
 #endif
