@@ -152,8 +152,8 @@ namespace QualitySmash
                         item.ParentSheetIndex = 174;
                 }
 
-                if (item.Category == -80 && item is ColoredObject c)
-                    c.color.Value = default;
+                if ((item.Category == StardewValley.Object.flowersCategory) && (item is ColoredObject c))
+                    c.color.Value = modEntry.colorTable.FindBaseColor(item.ItemId);
 
             }
 
@@ -223,7 +223,7 @@ namespace QualitySmash
 
             if (smashType == ModEntry.SmashType.Color)
             {
-                if (item.Category == -80 && item is ColoredObject)
+                if ((item.Category == StardewValley.Object.flowersCategory) && (item is ColoredObject))
                     return true;
                 if (item.ParentSheetIndex == 180 || item.ParentSheetIndex == 182)
                     return true;

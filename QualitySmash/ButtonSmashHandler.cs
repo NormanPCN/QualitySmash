@@ -260,13 +260,18 @@ namespace QualitySmash
                         }
                         else if (
                                  (actualItems[i] is ColoredObject c) &&
-                                 (c.Category == -80) &&
-                                 ! config.IgnoreItemsColor.Contains(actualItems[i].ParentSheetIndex)
+                                 (c.Category == StardewValley.Object.flowersCategory) &&
+                                 !config.IgnoreItemsColor.Contains(actualItems[i].ParentSheetIndex)
                                 )
                         {
+                            //modEntry.Monitor.Log("Flower is a colored item", LogLevel.Debug);
                             changed = true;
-                            c.color.Value = default;
+                            c.color.Value = modEntry.colorTable.FindBaseColor(actualItems[i].ItemId);
                         }
+                        //else if (actualItems[i].Category == StardewValley.Object.flowersCategory)
+                        //{
+                        //    modEntry.Monitor.Log("Flower is Not a colored item", LogLevel.Debug);
+                        //}
                     }
                 }
             }

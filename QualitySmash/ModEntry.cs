@@ -38,6 +38,7 @@ namespace QualitySmash
         internal SingleSmashHandler singleSmashHandler;
         private UndoHandler undoHandler;
         internal ModConfig Config;
+        internal GetBaseColors colorTable;
 
         // For GenericModConfigMenu
         private Dictionary<int, string> itemDictionary;
@@ -449,6 +450,8 @@ namespace QualitySmash
         private void OnSaveLoaded(object sender, SaveLoadedEventArgs e)
         {
             helper.Events.Display.MenuChanged += OnMenuChanged;
+
+            colorTable = new GetBaseColors();
         }
 
         private void HookMenuEvents(bool hook)
@@ -481,6 +484,7 @@ namespace QualitySmash
         {
             HookMenuEvents(false);
             helper.Events.Display.MenuChanged -= OnMenuChanged;
+            colorTable = null;
         }
 
         private void UpdateHoverText()
