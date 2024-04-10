@@ -41,7 +41,7 @@ namespace QualitySmash
             // that could be risky if I miss a data field in the conversion.
             // this is safer.
             // previously 'default' was used for the color. which is a non color. transparent and black.
-            // I now default to White if I cannot find tint.
+            // I now default to White if I cannot find a tint.
 
             foreach (var obj in objectData)
             {
@@ -80,5 +80,10 @@ namespace QualitySmash
             }
             return Color.White;
         }
+
+        public void ClearList()
+        {
+            this.baseColorList.Clear();
+        } 
     }
 }

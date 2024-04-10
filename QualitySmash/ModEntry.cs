@@ -9,6 +9,7 @@ using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Menus;
 using StardewValley.Tools;
+using xTile.Tiles;
 #if UseHarmony
 using HarmonyLib;
 #endif
@@ -21,24 +22,23 @@ namespace QualitySmash
         {
             Color,
             Quality,
-            Undo,
+            AutoSmash,
             None
         }
 
         internal static Dictionary<SmashType, string> TranslationMapping = new Dictionary<SmashType, string>()
         {
             { SmashType.Color, "hoverTextColor" },
-            { SmashType.Quality, "hoverTextQuality" },
-            { SmashType.Undo, "hoverTextUndo"}
+            { SmashType.Quality, "hoverTextQuality" }
         };
 
         private string assetsPath;
 
         internal ButtonSmashHandler buttonSmashHandler;
         internal SingleSmashHandler singleSmashHandler;
-        private UndoHandler undoHandler;
         internal ModConfig Config;
         internal GetBaseColors colorTable;
+
 
         // For GenericModConfigMenu
         private Dictionary<int, string> itemDictionary;
@@ -47,7 +47,10 @@ namespace QualitySmash
 
         internal IModHelper helper;
         public static ModEntry Instance { get; private set; }
-        private bool EventsHooked;
+        private bool MenuEventsHooked;
+
+        internal bool AutoSmashEnabled;
+        private Texture2D DrawTexture;
 
         public override void Entry(IModHelper helper)
         {
@@ -71,14 +74,20 @@ namespace QualitySmash
             if (Config.EnableUIQualitySmashButton)
                 this.buttonSmashHandler.AddButton(ModEntry.SmashType.Quality, buttonQuality, new Rectangle(0, 0, 16, 16));
 
+
             // Config for enable undo?
 
             this.singleSmashHandler = new SingleSmashHandler(this, this.Config, buttonColor, buttonQuality);
 
-            EventsHooked = false;
+            MenuEventsHooked = false;
+            AutoSmashEnabled = false;
+
             helper.Events.GameLoop.GameLaunched += OnGameLaunched;
             helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
             helper.Events.GameLoop.ReturnedToTitle += OnReturnedToTitle;
+
+            DrawTexture = new Texture2D(Game1.graphics.GraphicsDevice, 1, 1);
+            DrawTexture.SetData(new[] { Color.White });
 
 #if UseHarmony
             var harmony = new Harmony(this.ModManifest.UniqueID);
@@ -297,6 +306,14 @@ namespace QualitySmash
                 setValue: value => this.Config.EnableEggColorSmashing = value
             );
 
+            api.AddKeybind(
+                mod: this.ModManifest,
+                name: () => "Auto Smash Keybind",
+                tooltip: () => "Button to hold when you wish to enable/disable Auto Smash on pickup(harvest)",
+                getValue: () => this.Config.AutoSmashKeybind,
+                setValue: (SButton val) => this.Config.AutoSmashKeybind = val
+            );
+
             api.AddPageLink(this.ModManifest, "Smash Filters", () => "Smash Filters", () => "Basic filters to exclude sets of items from Quality Smash");
             api.AddPageLink(this.ModManifest, "Exceptions: Ignore Iridium by Category", () => "Exceptions: Ignore Iridium by Category", () => "Exceptions by category to the \"Ignore Iridium\" smash filter");
             api.AddPageLink(this.ModManifest, "Exceptions: Ignore Iridium by Item", () => "Exceptions: Ignore Iridium", () => "Exceptions to the \"Ignore Iridium\" smash filter");
@@ -450,33 +467,52 @@ namespace QualitySmash
         private void OnSaveLoaded(object sender, SaveLoadedEventArgs e)
         {
             helper.Events.Display.MenuChanged += OnMenuChanged;
+            helper.Events.Input.ButtonPressed += OnButtonPressed;
 
             colorTable = new GetBaseColors();
         }
 
         private void HookMenuEvents(bool hook)
         {
-            if (hook && !EventsHooked)
+            if (hook && !MenuEventsHooked)
             {
-                EventsHooked = true;
+                MenuEventsHooked = true;
                 // RenderedActiveMenu has our buttons draw over other menu item hover text.
                 // RenderingActiveMenu stops this but the buttons are dimmed. they still work.
                 // RenderedWorld looks just like RenderingActiveMenu
                 // ??? how to draw at the same "level" as the game without patching via Harmony.
                 helper.Events.Display.RenderedActiveMenu += OnRenderedActiveMenu;
-                helper.Events.Input.ButtonPressed += OnButtonPressed;
-                helper.Events.Input.ButtonReleased += OnButtonReleased;
-                helper.Events.Input.CursorMoved += OnCursorMoved;
-                //helper.Events.GameLoop.UpdateTicking += OnUpdateTicking;            }
+                helper.Events.Input.ButtonReleased += OnButtonReleasedMenu;
+                helper.Events.Input.CursorMoved += OnCursorMovedMenu;
             }
-            else if (!hook && EventsHooked)
+            else if (!hook && MenuEventsHooked)
             {
-                EventsHooked = false;
+                MenuEventsHooked = false;
                 helper.Events.Display.RenderedActiveMenu -= OnRenderedActiveMenu;
-                helper.Events.Input.ButtonPressed -= OnButtonPressed;
-                helper.Events.Input.ButtonReleased -= OnButtonReleased;
-                helper.Events.Input.CursorMoved -= OnCursorMoved;
-                //helper.Events.GameLoop.UpdateTicking -= OnUpdateTicking;
+                helper.Events.Input.ButtonReleased -= OnButtonReleasedMenu;
+                helper.Events.Input.CursorMoved -= OnCursorMovedMenu;
+            }
+        }
+
+        private void HookAutoSmashEvents(bool hook, bool playSound)
+        {
+            if (hook && !AutoSmashEnabled)
+            {
+                AutoSmashEnabled = true;
+                helper.Events.Player.InventoryChanged += ButtonSmashHandler.Player_InventoryChanged;
+                helper.Events.Display.RenderedWorld += OnRenderedWorld;
+                if (playSound)
+                    Game1.playSound("achievement");
+                    //Game1.playSound("pickUpItem");
+
+            }
+            else if (!hook && AutoSmashEnabled)
+            {
+                AutoSmashEnabled = false;
+                helper.Events.Player.InventoryChanged -= ButtonSmashHandler.Player_InventoryChanged;
+                helper.Events.Display.RenderedWorld -= OnRenderedWorld;
+                if (playSound)
+                    Game1.playSound("Ship");
             }
         }
 
@@ -484,10 +520,13 @@ namespace QualitySmash
         {
             HookMenuEvents(false);
             helper.Events.Display.MenuChanged -= OnMenuChanged;
+            helper.Events.Input.ButtonPressed -= OnButtonPressed;
+
+            colorTable.ClearList();
             colorTable = null;
         }
 
-        private void UpdateHoverText()
+        private void UpdateHoverTextMenu()
         {
             Point scaledMousePos = Game1.getMousePosition(true);
 
@@ -504,60 +543,57 @@ namespace QualitySmash
         /// <param name="e"></param>
         private void OnButtonPressed(object sender, ButtonPressedEventArgs e)
         {
-            if (!Context.IsWorldReady) return;
-
-            if (e.Button == Config.ColorSmashKeybind || e.Button == Config.QualitySmashKeybind)
+            if (Context.IsWorldReady)
             {
-                UpdateHoverText();
-                return;
-            }
-
-            if (e.Button != SButton.MouseLeft && e.Button != SButton.ControllerA)
-                return;
-
-            if (Config.EnableUISmashButtons && GetValidButtonSmashMenu() != null)
-            {
-                buttonSmashHandler.HandleClick(e);
-            }
-
-            if (Config.EnableSingleItemSmashKeybinds && GetValidKeybindSmashMenu() != null)
-            {
-                if (helper.Input.IsDown(Config.ColorSmashKeybind) || helper.Input.IsDown(Config.QualitySmashKeybind))
+                if (Game1.activeClickableMenu == null)
                 {
-                    singleSmashHandler.HandleClick(e);
-                    helper.Input.Suppress(SButton.MouseLeft);
-                    helper.Input.Suppress(SButton.ControllerA);
+                    if (Context.IsPlayerFree && (e.Button == Config.AutoSmashKeybind))
+                    {
+                        HookAutoSmashEvents(!AutoSmashEnabled, true);
+                    }
+                }
+                else
+                {
+                    if (e.Button == Config.ColorSmashKeybind || e.Button == Config.QualitySmashKeybind)
+                    {
+                        UpdateHoverTextMenu();
+                        return;
+                    }
+
+                    if (e.Button != SButton.MouseLeft && e.Button != SButton.ControllerA)
+                        return;
+
+                    // a menu can be valiud for both single and button smash.
+                    if (Config.EnableUISmashButtons && GetValidButtonSmashMenu() != null)
+                    {
+                        buttonSmashHandler.HandleClick(e);
+                    }
+                    if (Config.EnableSingleItemSmashKeybinds && GetValidKeybindSmashMenu() != null)
+                    {
+                        if (helper.Input.IsDown(Config.ColorSmashKeybind) || helper.Input.IsDown(Config.QualitySmashKeybind))
+                        {
+                            singleSmashHandler.HandleClick(e);
+                            helper.Input.Suppress(SButton.MouseLeft);
+                            helper.Input.Suppress(SButton.ControllerA);
+                        }
+                    }
                 }
             }
         }
 
-        private void OnButtonReleased(object sender, ButtonReleasedEventArgs e)
+        private void OnButtonReleasedMenu(object sender, ButtonReleasedEventArgs e)
         {
             if (e.Button == Config.ColorSmashKeybind || e.Button == Config.QualitySmashKeybind)
             {
-                UpdateHoverText();
+                UpdateHoverTextMenu();
                 return;
             }
         }
 
-        //Attempt to smooth out button animations
-        //private void OnUpdateTicking(object sender, UpdateTickingEventArgs e)
-        //{
-        //    //if (!Context.IsWorldReady) return;
-
-        //    var menu = GetValidButtonSmashMenu();
-        //    if (menu == null || !Config.EnableUISmashButtons)
-        //        return;
-
-        //    var scaledMousePos = Game1.getMousePosition(true);
-
-        //    buttonSmashHandler.TryHover(menu, scaledMousePos.X, scaledMousePos.Y);
-        //}
-
-        private void OnCursorMoved(object sender, CursorMovedEventArgs e)
+        private void OnCursorMovedMenu(object sender, CursorMovedEventArgs e)
         {
             if (Context.IsWorldReady)
-                UpdateHoverText();
+                UpdateHoverTextMenu();
         }
 
         private void OnRenderedActiveMenu(object sender, RenderedActiveMenuEventArgs e)
@@ -574,6 +610,9 @@ namespace QualitySmash
 
         private void OnMenuChanged(object sender, MenuChangedEventArgs e)
         {
+            // on any menu event, just wipe out our auto smash setup.
+            HookAutoSmashEvents(false, false);
+
             if (Context.IsWorldReady)
             {
                 // keep code out the the game loop unless a menu is active
@@ -583,9 +622,21 @@ namespace QualitySmash
             else
             {
                 //Monitor.Log("IsWorldReady=false in OnMenuChanged", LogLevel.Debug);
-                HookMenuEvents(false);
                 buttonSmashHandler.NewMenuActive(null);
             }
         }
+
+        private void OnRenderedWorld(object sender, RenderedWorldEventArgs e)
+        {
+            Color color = Color.Lime;
+
+            Vector2 view = new Vector2(Game1.viewport.X, Game1.viewport.Y);
+            Vector2 pos = Game1.player.Position - view;
+
+            e.SpriteBatch.Draw(DrawTexture,
+                               new Rectangle((int)pos.X, (int)pos.Y, Game1.tileSize, Game1.tileSize),
+                               color * 0.4f);
+        }
+
     }
 }

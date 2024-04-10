@@ -29,6 +29,8 @@ namespace QualitySmash
 
         public SButton QualitySmashKeybind { get; set; }
 
+        public SButton AutoSmashKeybind { get; set; }
+
         public bool EnableSingleSmashToBaseQuality { get; set; }
 
         public string ItemIDReference { get; set; }
@@ -67,13 +69,16 @@ namespace QualitySmash
 
             this.EnableEggColorSmashing = true;
             
-            this.EnableSingleItemSmashKeybinds = false;
+            this.EnableSingleItemSmashKeybinds = true;
 
             this.ColorSmashKeybind = SButton.C;
 
             this.QualitySmashKeybind = SButton.Q;
 
             this.EnableSingleSmashToBaseQuality = true;
+
+            this.AutoSmashKeybind = SButton.F5;
+
 #if ButtonOffsets
             this.SmashButtonXOffset_Chest = 0;
             this.SmashButtonXOffset_Inventory = 0;
@@ -93,12 +98,9 @@ namespace QualitySmash
                 "Items IDs listed here will still be",
                 "converted to lowest present quality even if",
                 "IgnoreIridium is set to true.",
-                "Defaults:",
-                "   296: Salmonberry",
             };
             this.IgnoreIridiumItemExceptions = new List<int>()
             {
-                296,
             };
 
             this.IgnoreIridiumCategoryExceptionsDescription = new List<string>()
@@ -107,11 +109,13 @@ namespace QualitySmash
                 "converted to lowest present quality even if",
                 "IgnoreIridium is set to true.",
                 "Defaults:",
-                "   -4: Fish",
+                "   -5: Egg",
+                "   -6: Milk"
             };
             this.IgnoreIridiumCategoryExceptions = new List<int>()
             {
-                -4,
+                -5,
+                -6
             };
 
             this.IgnoreGoldDescription = new List<string>()
@@ -140,8 +144,8 @@ namespace QualitySmash
             };
             this.IgnoreItemsColor = new List<int>()
             {
-                591,
-                593
+                //591,
+                //593
             };
 
             this.IgnoreItemsQualityDescription = new List<string>()
@@ -154,7 +158,8 @@ namespace QualitySmash
                 "    303 = Pale Ale",
                 "    346 = Beer",
                 "    424 = Cheese",
-                "    426 = Goat Cheese"
+                "    426 = Goat Cheese",
+                "    289 = Ostrich Egg"
             };
             this.IgnoreItemsQuality = new List<int>()
             {
@@ -163,7 +168,8 @@ namespace QualitySmash
                 303,
                 346,
                 424,
-                426
+                426,
+                289
             };
 
             this.IgnoreItemsCategoryDescription = new List<string>()

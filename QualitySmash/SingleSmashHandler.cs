@@ -139,20 +139,24 @@ namespace QualitySmash
             if (item.maximumStackSize() <= 1)
                 return;
 
-            Game1.playSound("clubhit");
+            Game1.playSound("Ship");
 
             if (smashType == ModEntry.SmashType.Color)
             {
-                if (item.Category == -5)
+                if (item.Category == StardewValley.Object.EggCategory)
                 {
-                    if (item.ParentSheetIndex == 180)
+                    if (item.ItemId == "180")
+                    {
                         item.ParentSheetIndex = 176;
-
-                    if (item.ParentSheetIndex == 182)
+                        item.ItemId = "176";
+                    }
+                    else if (item.ItemId == "182")
+                    {
                         item.ParentSheetIndex = 174;
+                        item.ItemId = "174";
+                    };
                 }
-
-                if ((item.Category == StardewValley.Object.flowersCategory) && (item is ColoredObject c))
+                else if ((item.Category == StardewValley.Object.flowersCategory) && (item is ColoredObject c))
                     c.color.Value = modEntry.colorTable.FindBaseColor(item.ItemId);
 
             }
@@ -170,13 +174,12 @@ namespace QualitySmash
             //now look for another stack of the same item (quality+color) and stack this to that
 
             int slot = itemSlotNumber;
-            int idx = item.ParentSheetIndex;
+            //int idx = item.ParentSheetIndex;
             for (int j = 0; j < actualItems.Count; j++)
             {
                 if (
                     (j != slot) &&
                     (actualItems[j] != null) &&
-                    (actualItems[j].ParentSheetIndex == idx) &&
                     actualItems[j].canStackWith(item)
                    )
                 {
@@ -225,12 +228,11 @@ namespace QualitySmash
             {
                 if ((item.Category == StardewValley.Object.flowersCategory) && (item is ColoredObject))
                     return true;
-                if (item.ParentSheetIndex == 180 || item.ParentSheetIndex == 182)
+                if (item.ItemId == "180" || item.ItemId == "182")//brown egg and large brown egg
                     return true;
                 //modEntry.Monitor.Log($"Not smashable. category={item.Category}, isColored={item is ColoredObject}", LogLevel.Debug);
             }
-
-            if (smashType == ModEntry.SmashType.Quality)
+            else if (smashType == ModEntry.SmashType.Quality)
             {
                 if (item is StardewValley.Object o && o.Quality != 0)
                     return true;
@@ -310,12 +312,12 @@ namespace QualitySmash
             b.Draw(cursor,
                    new Vector2(Game1.getOldMouseX() + xOffset, Game1.getOldMouseY() + yOffset),
                    Game1.getSourceRectForStandardTileSheet(Game1.mouseCursors, 0, 16, 16),
-                   Color.White,
-                   0f,
-                   Vector2.Zero,
-                   4f + Game1.dialogueButtonScale / 150f,
-                   SpriteEffects.None,
-                   0);
+                                                            Color.White,
+                                                            0f,
+                                                            Vector2.Zero,
+                                                            4f + Game1.dialogueButtonScale / 150f,
+                                                            SpriteEffects.None,
+                                                            0);
         }
     }
 }
