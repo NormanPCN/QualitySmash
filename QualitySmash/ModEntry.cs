@@ -60,24 +60,13 @@ namespace QualitySmash
             this.helper = helper;
             Instance = this;
 
-            var buttonColor = helper.ModContent.Load<Texture2D>("assets/buttonColor.png");
-            var buttonQuality = helper.ModContent.Load<Texture2D>("assets/buttonQuality.png");
-            var buttonUndo = helper.ModContent.Load<Texture2D>("assets/buttonUndo.png");
-
             PopulateIdReferences();
 
-            this.buttonSmashHandler = new ButtonSmashHandler(this, this.Config);
+            var buttonQuality = helper.ModContent.Load<Texture2D>("assets/buttonQuality.png");
+            var buttonColor = helper.ModContent.Load<Texture2D>("assets/buttonColor.png");
 
-            if (Config.EnableUIColorSmashButton)
-                this.buttonSmashHandler.AddButton(ModEntry.SmashType.Color, buttonColor, new Rectangle(0, 0, 16, 16));
-
-            if (Config.EnableUIQualitySmashButton)
-                this.buttonSmashHandler.AddButton(ModEntry.SmashType.Quality, buttonQuality, new Rectangle(0, 0, 16, 16));
-
-
-            // Config for enable undo?
-
-            this.singleSmashHandler = new SingleSmashHandler(this, this.Config, buttonColor, buttonQuality);
+            this.buttonSmashHandler = new ButtonSmashHandler(this, this.Config, buttonQuality, buttonColor);
+            this.singleSmashHandler = new SingleSmashHandler(this, this.Config, buttonQuality, buttonColor);
 
             MenuEventsHooked = false;
             AutoSmashEnabled = false;
@@ -256,10 +245,6 @@ namespace QualitySmash
                 setValue: value =>
                 {
                     this.Config.EnableUIColorSmashButton = value;
-                    if (!value)
-                        this.buttonSmashHandler.RemoveButton(ModEntry.SmashType.Color);
-                    else
-                        this.buttonSmashHandler.AddButton(ModEntry.SmashType.Color, helper.ModContent.Load<Texture2D>("assets/buttonColor.png"), new Rectangle(0, 0, 16, 16));
                 });
 
             api.AddBoolOption(
@@ -270,10 +255,6 @@ namespace QualitySmash
                 setValue: value =>
                 {
                     this.Config.EnableUIQualitySmashButton = value;
-                    if (!value)
-                        this.buttonSmashHandler.RemoveButton(ModEntry.SmashType.Quality);
-                    else
-                        this.buttonSmashHandler.AddButton(ModEntry.SmashType.Quality, helper.ModContent.Load<Texture2D>("assets/buttonQuality.png"), new Rectangle(0, 0, 16, 16));
                 });
 
 #if ButtonOffsets
@@ -612,6 +593,8 @@ namespace QualitySmash
         {
             // on any menu event, just wipe out our auto smash setup.
             HookAutoSmashEvents(false, false);
+
+            buttonSmashHandler.MenuDeactivate(e.OldMenu);
 
             if (Context.IsWorldReady)
             {

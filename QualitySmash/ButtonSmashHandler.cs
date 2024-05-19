@@ -16,13 +16,16 @@ namespace QualitySmash
     internal class ButtonSmashHandler
     {
         private readonly ModEntry modEntry;
+        private readonly Texture2D buttonColor;
+        private readonly Texture2D buttonQuality;
         private readonly UiButtonHandler buttonHandler;
         private readonly ModConfig config;
         private List<string> autoSmashItems;
 
-        IReflectedField<Item> Reflect_hoveredItem;
-        IReflectedField<string> Reflect_hoverText;
-        IReflectedField<int> Reflect_hoverAmount;
+        // 1.6 has these fields in the InventoryPage public now
+        //IReflectedField<Item> Reflect_hoveredItem;
+        //IReflectedField<string> Reflect_hoverText;
+        //IReflectedField<int> Reflect_hoverAmount;
 
         /// <summary>
         /// Initializes stuff for the mod.
@@ -31,47 +34,71 @@ namespace QualitySmash
         /// <param name="config">The mods config</param>
         /// <param name="imageColor">Button texture for the color smash button</param>
         /// <param name="imageQuality">Button texture for the quality smash button</param>
-        public ButtonSmashHandler(ModEntry modEntry, ModConfig config)
+        public ButtonSmashHandler(ModEntry modEntry, ModConfig config, Texture2D buttonQuality, Texture2D buttonColor)
         {
             this.modEntry = modEntry;
             this.config = config;
+            this.buttonColor = buttonColor;
+            this.buttonQuality = buttonQuality;
             this.autoSmashItems = new List<string>();
 
             this.buttonHandler = new UiButtonHandler(modEntry);
 
-            Reflect_hoveredItem = null;
-            Reflect_hoverText = null;
-            Reflect_hoverAmount = null;
+            //Reflect_hoveredItem = null;
+            //Reflect_hoverText = null;
+            //Reflect_hoverAmount = null;
         }
 
         public void NewMenuActive(IClickableMenu menu)
         {
-            Reflect_hoveredItem = null;
-            Reflect_hoverText = null;
-            Reflect_hoverAmount = null;
+            //Reflect_hoveredItem = null;
+            //Reflect_hoverText = null;
+            //Reflect_hoverAmount = null;
 
-            if ((menu is GameMenu gMenu) && (gMenu.GetCurrentPage() is InventoryPage iPage))
+            //if ((menu is GameMenu gMenu) && (gMenu.GetCurrentPage() is InventoryPage iPage))
+            //{
+            //    IReflectionHelper reflect = modEntry.helper.Reflection;
+            //    Reflect_hoveredItem = reflect.GetField<Item>(iPage, "hoveredItem");
+            //    Reflect_hoverText = reflect.GetField<string>(iPage, "hoverText");
+            //    Reflect_hoverAmount = reflect.GetField<int>(iPage, "hoverAmount");
+            //}
+
+            if (modEntry.IsValidSmashMenuAny(menu))
             {
-                IReflectionHelper reflect = modEntry.helper.Reflection;
-                Reflect_hoveredItem = reflect.GetField<Item>(iPage, "hoveredItem");
-                Reflect_hoverText = reflect.GetField<string>(iPage, "hoverText");
-                Reflect_hoverAmount = reflect.GetField<int>(iPage, "hoverAmount");
+                if (modEntry.Config.EnableUIQualitySmashButton)
+                    buttonHandler.AddButton(ModEntry.SmashType.Quality, buttonQuality, new Rectangle(0, 0, 16, 16));
+                else
+                    buttonHandler.RemoveButton(ModEntry.SmashType.Quality);
+
+                if (modEntry.Config.EnableUIColorSmashButton)
+                    buttonHandler.AddButton(ModEntry.SmashType.Color, buttonColor, new Rectangle(0, 0, 16, 16));
+                else
+                    buttonHandler.RemoveButton(ModEntry.SmashType.Color);
+
+                buttonHandler.UpdateBounds(menu, true);
             }
         }
 
-        public void AddButton(ModEntry.SmashType smashType, Texture2D image, Rectangle clickableArea)
+        public void MenuDeactivate(IClickableMenu menu)
         {
-            this.buttonHandler.AddButton(smashType, image, clickableArea);
+            if (modEntry.IsValidSmashMenuAny(menu))
+            {
+                buttonHandler.UpdateBounds(menu, false);
+            }
         }
 
-        public void RemoveButton(ModEntry.SmashType smashType)
-        {
-            this.buttonHandler.RemoveButton(smashType);
-        }
+        //public void AddButton(ModEntry.SmashType smashType, Texture2D image, Rectangle clickableArea)
+        //{
+        //    this.buttonHandler.AddButton(smashType, image, clickableArea);
+        //}
+
+        //public void RemoveButton(ModEntry.SmashType smashType)
+        //{
+        //    this.buttonHandler.RemoveButton(smashType);
+        //}
 
         public void DrawButtons(IClickableMenu menu, SpriteBatch b)
         {
-            buttonHandler.UpdateBounds(menu);
             buttonHandler.DrawButtons(b);
 
 #if !UseHarmony
@@ -93,10 +120,9 @@ namespace QualitySmash
             }
             else if ((menu is GameMenu gMenu) && (gMenu.GetCurrentPage() is InventoryPage iPage))
             {
-                // these fields are private in InventoryPage. public in ItemGrabMenu.
-                hoveredItem = Reflect_hoveredItem.GetValue();
-                hoverText = Reflect_hoverText.GetValue();
-                hoverAmount = Reflect_hoverAmount.GetValue();
+                hoveredItem = iPage.hoveredItem;
+                hoverText = iPage.hoverText;
+                hoverAmount = iPage.hoverAmount;
                 iMenu = iPage.inventory;
                 heldItem = Game1.player.CursorSlotItem != null;//looking at InventoryPage.checkHeldItem code
             }
@@ -139,7 +165,6 @@ namespace QualitySmash
             var cursorPos = e.Cursor.GetScaledScreenPixels();
             Game1.uiMode = oldUiMode;
 
-            // to allow button smash on backpack then test and setup that data here
             IList<Item> actualItems;
             ItemGrabMenu chestMenu = null;
             IClickableMenu menu = ModEntry.GetValidButtonSmashMenu();

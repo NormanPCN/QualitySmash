@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
 using StardewValley.Menus;
+using StardewValley.Util;
 
 namespace QualitySmash
 {
@@ -29,12 +31,20 @@ namespace QualitySmash
             //this.texture = texture;
 
             clickable = new ClickableTextureComponent(Rectangle.Empty, texture, buttonClickableArea, 4f);
+
+            clickable.myID = 150 + (int)smashType;
         }
 
         public void SetBounds(int screenX, int screenY, int size)
         {
             boundsSet = true;
             clickable.bounds = new Rectangle(screenX, screenY, size, size);
+            clickable.visible = true;
+        }
+
+        public ClickableTextureComponent GetClickable()
+        {
+            return clickable;
         }
 
         public bool DrawButton(SpriteBatch b)
