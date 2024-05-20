@@ -30,7 +30,7 @@ namespace QualitySmash
         private int itemSlotNumber;
         private ItemGrabMenu chestMenu;// != null, if the item was not in the backpack inventory
 
-        public SingleSmashHandler(ModEntry modEntry, ModConfig config, Texture2D cursorQuality, Texture2D cursorColor)
+        public SingleSmashHandler(ModEntry modEntry, ModConfig config, Texture2D cursorColor, Texture2D cursorQuality)
         {
             this.modEntry = modEntry;
             this.config = config;

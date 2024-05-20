@@ -65,8 +65,8 @@ namespace QualitySmash
             var buttonQuality = helper.ModContent.Load<Texture2D>("assets/buttonQuality.png");
             var buttonColor = helper.ModContent.Load<Texture2D>("assets/buttonColor.png");
 
-            this.buttonSmashHandler = new ButtonSmashHandler(this, this.Config, buttonQuality, buttonColor);
-            this.singleSmashHandler = new SingleSmashHandler(this, this.Config, buttonQuality, buttonColor);
+            buttonSmashHandler = new ButtonSmashHandler(this, this.Config, buttonColor, buttonQuality);
+            singleSmashHandler = new SingleSmashHandler(this, this.Config, buttonColor, buttonQuality);
 
             MenuEventsHooked = false;
             AutoSmashEnabled = false;

@@ -34,7 +34,7 @@ namespace QualitySmash
         /// <param name="config">The mods config</param>
         /// <param name="imageColor">Button texture for the color smash button</param>
         /// <param name="imageQuality">Button texture for the quality smash button</param>
-        public ButtonSmashHandler(ModEntry modEntry, ModConfig config, Texture2D buttonQuality, Texture2D buttonColor)
+        public ButtonSmashHandler(ModEntry modEntry, ModConfig config, Texture2D buttonColor, Texture2D buttonQuality)
         {
             this.modEntry = modEntry;
             this.config = config;

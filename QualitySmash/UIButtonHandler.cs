@@ -117,7 +117,7 @@ namespace QualitySmash
 
         public void UpdateBounds(IClickableMenu menu, bool activate)
         {
-            if (!activate && modEntry.IsValidSmashMenuAny(menu))
+            if (!activate)
             {
                 List<ClickableComponent> allClickableComponents = null;
                 if (menu is ItemGrabMenu grabMenu)
