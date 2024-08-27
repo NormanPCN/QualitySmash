@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using StardewModdingAPI.Events;
 using System.Runtime.CompilerServices;
+using System;
 
 namespace QualitySmash
 {
@@ -390,7 +391,7 @@ namespace QualitySmash
                                 }
                                 else
                                 {
-                                    // why the hell does addToStack add to one stack without also removing the added items from the other?
+                                    // addToStack does not remove from the source stack
                                     actualItems[j].Stack = remain;
                                 }
 
@@ -417,6 +418,7 @@ namespace QualitySmash
                 ModEntry.Instance.AutoSmashEnabled &&
                 (e.Added != null) &&
                 e.IsLocalPlayer &&
+                (Game1.player != null) &&  
                 (Game1.activeClickableMenu == null)
                )
             {

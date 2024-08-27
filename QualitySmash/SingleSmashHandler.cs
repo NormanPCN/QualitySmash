@@ -145,12 +145,12 @@ namespace QualitySmash
             {
                 if (item.Category == StardewValley.Object.EggCategory)
                 {
-                    if (item.ItemId == "180")
+                    if (item.ItemId == "180")//brown egg
                     {
                         item.ParentSheetIndex = 176;
                         item.ItemId = "176";
                     }
-                    else if (item.ItemId == "182")
+                    else if (item.ItemId == "182")//large brown egg
                     {
                         item.ParentSheetIndex = 174;
                         item.ItemId = "174";

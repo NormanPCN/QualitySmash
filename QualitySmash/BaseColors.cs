@@ -10,10 +10,12 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.ItemTypeDefinitions;
+using StardewValley.GameData.Crops;
+using StardewValley.GameData.Objects;
 
 namespace QualitySmash
 {
-    internal class GetBaseColors
+    internal class CropBaseColors
     {
         private struct ColorRec
         {
@@ -28,62 +30,93 @@ namespace QualitySmash
         }
 
         private List<ColorRec> baseColorList;
+        private bool cropTableLoaded;
 
-        public GetBaseColors()
+        public CropBaseColors()
         {
             baseColorList = new();
+            cropTableLoaded = false;
+        }
 
-            var objectData = DataLoader.Objects(Game1.content);
-            var cropData = DataLoader.Crops(Game1.content);
-
-            // for items that have multiple possible color tints, we use the first one for our smashed color value.
-            // it might be better(?) to have the ColoredObject changed to a non-Colored object.
-            // that could be risky if I miss a data field in the conversion.
-            // this is safer.
-            // previously 'default' was used for the color. which is a non color. transparent and black.
-            // I now default to White if I cannot find a tint.
-
-            foreach (var obj in objectData)
+        private void LoadCropTable()
+        {
+            try
             {
-                if (obj.Value.Category == StardewValley.Object.flowersCategory)
+                if (Game1.content != null)
                 {
-                    foreach (var crop in cropData)
+                    var objectData = DataLoader.Objects(Game1.content);
+                    var cropData = DataLoader.Crops(Game1.content);
+
+                    if ((objectData != null) && (cropData != null))
                     {
-                        ParsedItemData harvestItemData = ItemRegistry.GetDataOrErrorItem(crop.Value.HarvestItemId);
-                        if (obj.Key.Equals(harvestItemData.ItemId))
+                        cropTableLoaded = true;
+                        baseColorList.Clear();
+
+                        // for items that have multiple possible color tints, we use the first one for our smashed color value.
+                        // it might be better(?) to have the ColoredObject changed to a non-Colored object.
+                        // that could be risky if I miss a data field in the conversion.
+                        // this is safer.
+                        // previously 'default' was used for the color. which seemed to be a non color. transparent and black.
+                        // this only affected tailoring. inventory/cooking was not affected by the 'default' color.
+
+                        foreach (var obj in objectData)
                         {
-                            if (crop.Value.TintColors.Count > 0)
+                            if (obj.Value.Category == StardewValley.Object.flowersCategory)
                             {
-                                Color? clr = Utility.StringToColor(crop.Value.TintColors[0]);
-                                if (clr.HasValue)
+                                foreach (var crop in cropData)
                                 {
-                                    baseColorList.Add(new ColorRec(harvestItemData.ItemId, clr.Value));
-                                    //ModEntry.Instance.Monitor.Log($"Color match. item={harvestItemData.ItemId}, tint={clr.Value}", LogLevel.Debug);
+                                    ParsedItemData harvestItemData = ItemRegistry.GetDataOrErrorItem(crop.Value.HarvestItemId);
+                                    if (obj.Key.Equals(harvestItemData.ItemId))
+                                    {
+                                        if (crop.Value.TintColors.Count > 0)
+                                        {
+                                            Color? clr = Utility.StringToColor(crop.Value.TintColors[0]);
+                                            if (clr.HasValue)
+                                            {
+                                                baseColorList.Add(new ColorRec(harvestItemData.ItemId, clr.Value));
+                                                //ModEntry.Instance.Monitor.Log($"Color match. item={harvestItemData.ItemId}, tint={clr.Value}", LogLevel.Debug);
+                                            }
+                                        }
+                                        break;
+                                    }
                                 }
                             }
-                            break;
                         }
                     }
+                    else
+                    {
+                        ModEntry.Instance.Monitor.Log($"QualitySmash: objectData or cropData is null. objectData={objectData == null}, cropdata={cropData == null}", LogLevel.Error);
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                ModEntry.Instance.Monitor.Log($"QualitySmash: exception in LoadCropTable. e={e}", LogLevel.Error);
             }
         }
 
         public Color FindBaseColor(string objectId)
         {
-            if (this.baseColorList.Count > 0)
+            // this handles a situation that if for some reason the class contructor fails to load crop data
+            // we try again at first attempt to use color smash.
+            if (!cropTableLoaded)
+                LoadCropTable();
+
+            if (baseColorList.Count > 0)
             {
-                foreach (var item in this.baseColorList)
+                foreach (var item in baseColorList)
                 {
                     if (objectId.Equals(item.id))
                         return item.color;
                 }
             }
-            return Color.White;
+            return Color.White;// default if I cannot find a crop tint.
         }
 
         public void ClearList()
         {
-            this.baseColorList.Clear();
+            baseColorList.Clear();
+            cropTableLoaded = false;
         } 
     }
 }

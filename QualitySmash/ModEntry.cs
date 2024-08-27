@@ -37,7 +37,7 @@ namespace QualitySmash
         internal ButtonSmashHandler buttonSmashHandler;
         internal SingleSmashHandler singleSmashHandler;
         internal ModConfig Config;
-        internal GetBaseColors colorTable;
+        internal CropBaseColors colorTable;
 
 
         // For GenericModConfigMenu
@@ -450,7 +450,7 @@ namespace QualitySmash
             helper.Events.Display.MenuChanged += OnMenuChanged;
             helper.Events.Input.ButtonPressed += OnButtonPressed;
 
-            colorTable = new GetBaseColors();
+            colorTable = new CropBaseColors();
         }
 
         private void HookMenuEvents(bool hook)
@@ -614,11 +614,14 @@ namespace QualitySmash
             Color color = Color.Lime;
 
             Vector2 view = new Vector2(Game1.viewport.X, Game1.viewport.Y);
-            Vector2 pos = Game1.player.Position - view;
+            if (Game1.player != null)
+            {
+                Vector2 pos = Game1.player.Position - view;
 
-            e.SpriteBatch.Draw(DrawTexture,
-                               new Rectangle((int)pos.X, (int)pos.Y, Game1.tileSize, Game1.tileSize),
-                               color * 0.4f);
+                e.SpriteBatch.Draw(DrawTexture,
+                                   new Rectangle((int)pos.X, (int)pos.Y, Game1.tileSize, Game1.tileSize),
+                                   color * 0.4f);
+            }
         }
 
     }
