@@ -80,8 +80,19 @@ namespace QualitySmash
 
 #if UseHarmony
             var harmony = new Harmony(this.ModManifest.UniqueID);
+            System.Reflection.MethodInfo mInfo;
 
-            harmony.PatchAll();
+            mInfo = harmony.Patch(original: AccessTools.Method(typeof(StardewValley.Menus.MenuWithInventory),
+                                                               nameof(StardewValley.Menus.MenuWithInventory.draw),
+                                                               new Type[] {typeof(SpriteBatch), typeof(bool), typeof(bool), typeof(int), typeof(int), typeof(int)}),
+                                  postfix: new HarmonyMethod(typeof(MenuWithInventoryPatches), nameof(MenuWithInventoryPatches.Draw_Postfix))
+                                 );
+            mInfo = harmony.Patch(original: AccessTools.Method(typeof(StardewValley.Menus.InventoryMenu),
+                                                               nameof(StardewValley.Menus.InventoryMenu.draw),
+                                                               new Type[] {typeof(SpriteBatch), typeof(int), typeof(int), typeof(int)}),
+                                  postfix: new HarmonyMethod(typeof(InventoryMenuPatches), nameof(InventoryMenuPatches.Draw_Postfix))
+                     );
+            mInfo = null;
 #endif
         }
 

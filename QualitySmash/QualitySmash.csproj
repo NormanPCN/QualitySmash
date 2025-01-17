@@ -1,8 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <EnableHarmony>false</EnableHarmony>
+    <EnableHarmony>true</EnableHarmony>
     <AssemblyName>QualitySmash</AssemblyName>
     <RootNamespace>QualitySmash</RootNamespace>
   </PropertyGroup>
@@ -13,12 +13,8 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>$(DefineConstants);UseHarmony</DefineConstants>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Include="Patches.cs" Condition=" '$(EnableHarmony)' == 'true' " />
-  </ItemGroup>
 
   <ItemGroup>
     <None Remove="packages.config" />

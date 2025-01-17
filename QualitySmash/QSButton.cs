@@ -69,7 +69,7 @@ namespace QualitySmash
         //Ensure passing scaled pixels
         public bool ContainsPoint(int x, int y)
         {
-            return clickable.containsPoint(x, y);
+            return this.clickable.containsPoint(x, y);
         }
 
         //public void EnableHoverText(bool enable)
@@ -85,7 +85,7 @@ namespace QualitySmash
         public bool TryHover(int x, int y)
         {
             drawHoverText = this.clickable.containsPoint((int)x, (int)y);
-            clickable.tryHover(x, y, 0.4f);
+            this.clickable.tryHover(x, y, 0.4f);
             return drawHoverText;
         }
         

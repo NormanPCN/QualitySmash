@@ -12,6 +12,7 @@ using StardewValley;
 using StardewValley.ItemTypeDefinitions;
 using StardewValley.GameData.Crops;
 using StardewValley.GameData.Objects;
+using StardewValley.Objects;
 
 namespace QualitySmash
 {
@@ -61,14 +62,18 @@ namespace QualitySmash
 
                         foreach (var obj in objectData)
                         {
-                            if (obj.Value.Category == StardewValley.Object.flowersCategory)
+                            if (
+                                (obj.Value.Category == StardewValley.Object.flowersCategory) ||
+                                (obj.Value.Category == StardewValley.Object.VegetableCategory) ||
+                                (obj.Value.Category == StardewValley.Object.FruitsCategory)
+                               )
                             {
                                 foreach (var crop in cropData)
                                 {
                                     ParsedItemData harvestItemData = ItemRegistry.GetDataOrErrorItem(crop.Value.HarvestItemId);
                                     if (obj.Key.Equals(harvestItemData.ItemId))
                                     {
-                                        if (crop.Value.TintColors.Count > 0)
+                                        if (crop.Value.TintColors?.Count > 0)
                                         {
                                             Color? clr = Utility.StringToColor(crop.Value.TintColors[0]);
                                             if (clr.HasValue)
@@ -97,8 +102,6 @@ namespace QualitySmash
 
         public Color FindBaseColor(string objectId)
         {
-            // this handles a situation that if for some reason the class contructor fails to load crop data
-            // we try again at first attempt to use color smash.
             if (!cropTableLoaded)
                 LoadCropTable();
 

@@ -156,9 +156,17 @@ namespace QualitySmash
                         item.ItemId = "174";
                     };
                 }
-                else if ((item.Category == StardewValley.Object.flowersCategory) && (item is ColoredObject c))
+                else if (
+                         (item is ColoredObject c) &&
+                         (
+                          (c.Category == StardewValley.Object.flowersCategory) ||
+                          (c.Category == StardewValley.Object.VegetableCategory) ||
+                          (c.Category == StardewValley.Object.FruitsCategory)
+                         )
+                        )
+                {
                     c.color.Value = modEntry.colorTable.FindBaseColor(item.ItemId);
-
+                }
             }
 
             if (smashType == ModEntry.SmashType.Quality)

@@ -147,9 +147,9 @@ namespace QualitySmash
                 else if (hoveredItem != null)
                     IClickableMenu.drawToolTip(b, iMenu.descriptionText, iMenu.descriptionTitle, hoveredItem, heldItem);
             }
+#endif
 
             menu.drawMouse(b);
-#endif
         }
 
         internal void TryHover(IClickableMenu menu, float x, float y)
@@ -331,7 +331,14 @@ namespace QualitySmash
                 {
                     if ((actualItems[i] != null) && (actualItems[i].maximumStackSize() > 1) && !IsFiltered(actualItems[i], smashType))
                     {
-                        if ((actualItems[i] is ColoredObject c) && (c.Category == StardewValley.Object.flowersCategory))
+                        if (
+                            (actualItems[i] is ColoredObject c) &&
+                            (
+                             (c.Category == StardewValley.Object.flowersCategory) ||
+                             (c.Category == StardewValley.Object.VegetableCategory) ||
+                             (c.Category == StardewValley.Object.FruitsCategory)
+                            )
+                           )
                         {
                             Color baseColor = modEntry.colorTable.FindBaseColor(c.ItemId);
                             changed = changed || (c.color.Value != baseColor);
