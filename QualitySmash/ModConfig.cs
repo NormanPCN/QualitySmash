@@ -17,9 +17,11 @@ namespace QualitySmash
 
         public bool EnableUIQualitySmashButton { get; set; }
 
+#if ButtonOffsets
         public int SmashButtonXOffset_Chest { get; set; }
 
         public int SmashButtonXOffset_Inventory { get; set; }
+#endif
 
         public bool EnableEggColorSmashing { get; set; }
 
